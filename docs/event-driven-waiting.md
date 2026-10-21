@@ -12,6 +12,9 @@ and leave durable state for the next user-driven turn.
 
 ## Companions
 
+- `event-driven-coordination` owns fleet policy, checkpoints, event-based hand-backs
+  and the hourly recovery ping; this skill owns the mechanics of one wait.
+
 - The installed `paseo` skill's Waiting section owns Paseo completion delivery.
   This skill refers to it rather than copying its tool defaults.
 - `paseo-cache-warmer` owns keepalive during long waits when it is installed.

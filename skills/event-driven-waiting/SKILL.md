@@ -5,6 +5,8 @@ description: Wait for agent, file, alert, time or remote-job events without poll
 
 # Event-driven waiting
 
+This skill supplies single-event mechanics; `event-driven-coordination` owns fleet policy.
+
 Never poll with model turns. Arm one waiter whose completion is the notification,
 in the **same turn as the launch**. Do independent work or yield while it waits.
 A detached shell process alone does not guarantee that the coordinator wakes.
@@ -66,3 +68,5 @@ notification, quiet pane or process exit alone does not prove success. Record
 failures and re-arm only after settling them. For recovery across coordinator
 changes, use `long-run-handoff`; if absent, save the event and result paths in
 private durable state. If `paseo` is absent, use the harness mechanism above.
+
+For fleets supervised for hours, use `event-driven-coordination` when installed.
