@@ -1,11 +1,12 @@
 ---
-name: event-driven-waiting
-description: Wait for agent, file, alert, time or remote-job events without polling through model turns. Arm a completion notification at launch, then verify the actual result when it arrives.
+name: event-driven-agents
+description: Coordinate agents and jobs through events, from a single completion wait to a fleet running for hours. Arm notifications at launch, avoid polling with model turns, and use fleet checkpoints and recovery pings when needed.
 ---
 
-# Event-driven waiting
+# Event-driven agents
 
-This skill supplies single-event mechanics; `event-driven-coordination` owns fleet policy.
+For many workers or jobs supervised for hours, also read [fleet policy](references/fleet.md).
+For one wait, use only this file.
 
 Never poll with model turns. Arm one waiter whose completion is the notification,
 in the **same turn as the launch**. Do independent work or yield while it waits.
@@ -23,20 +24,22 @@ A detached shell process alone does not guarantee that the coordinator wakes.
    waiter there; do not replace tracked execution with an untracked shell `&`.
 3. For external signals, put a plain shell waiter in that tracked task. The
    loops below are process checks, not recurring model turns. Paths are examples;
-   substitute absolute paths to the actual event and handle command failures.
+   replace project/run placeholders and handle command failures. The default
+   `~/.agents/runs/<project>/<run>/` is shared across agents; tilde expands below.
 
    ```sh
+   run_dir=~/.agents/runs/'<project>/<run>'
    # File published by a worker, preferably with an atomic rename.
-   until test -f /abs/run/results/worker.result.md; do command sleep 60; done
+   until test -f "$run_dir/results/worker.result.md"; do command sleep 60; done
 
    # Alert directory: matches nothing safely when empty.
-   until command find /abs/run/alerts -type f -name '*.md' -print -quit | command grep -q .; do command sleep 60; done
+   until command find "$run_dir/alerts" -type f -name '*.md' -print -quit | command grep -q .; do command sleep 60; done
 
    # Hypothetical same-day target, later today: 18:00.
    until test "$(command date +%H%M)" -ge 1800; do command sleep 60; done
 
    # Remote producer publishes JOB_DONE only after durable outputs exist.
-   ssh REMOTE_HOST 'until test -f /abs/job/JOB_DONE; do command sleep 60; done'
+   ssh REMOTE_HOST 'run_dir=~/.agents/runs/"<project>/<run>"; until test -f "$run_dir/JOB_DONE"; do command sleep 60; done'
    ```
 
    Use unique run targets so an old marker cannot complete a new assignment.
@@ -69,4 +72,3 @@ failures and re-arm only after settling them. For recovery across coordinator
 changes, use `long-run-handoff`; if absent, save the event and result paths in
 private durable state. If `paseo` is absent, use the harness mechanism above.
 
-For fleets supervised for hours, use `event-driven-coordination` when installed.
