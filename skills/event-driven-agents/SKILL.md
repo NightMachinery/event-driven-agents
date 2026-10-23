@@ -60,6 +60,13 @@ A detached shell process alone does not guarantee that the coordinator wakes.
 - Queue messages or deliver when idle if the backend supports it; do not interrupt
   busy agents merely to notify them. `--no-wait` frees the sender, not a promise
   that recipient delivery waits for idle. Follow the backend's verified semantics.
+- A notifier that sends later (after retries, or after waiting for a busy
+  recipient to go idle) must run its send from a directory that outlives the
+  job, such as the run directory or `$HOME`, never the job's working directory.
+  The coordinator may merge and delete that worktree meanwhile, and a Node CLI
+  such as `paseo` then dies at startup with `uv_cwd ENOENT`, so the outcome is
+  lost. A late notification is not a hung job: check the notifier's failure
+  alerts and job record before waiting longer or rerunning.
 - Keepalive during long waits belongs to `paseo-cache-warmer` when installed.
   If absent, let the wait stand without inventing recurring model pings.
 
