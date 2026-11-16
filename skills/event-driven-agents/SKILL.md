@@ -17,8 +17,11 @@ A detached shell process alone does not guarantee that the coordinator wakes.
 1. Use the backend's completion notice. For Paseo, follow the installed `paseo`
    skill's **Waiting** section for `notifyOnFinish` and background
    `send_agent_prompt`; do not duplicate its scheduling or delivery rules.
-   Workers assigned a report-back duty use `paseo send --no-wait COORDINATOR_ID
-   "ASSIGNMENT STATUS RESULT_PATH"` through an appropriate delivery channel.
+   Workers assigned a report-back duty use `paseo send --no-wait --behavior steer
+   COORDINATOR_ID "ASSIGNMENT STATUS RESULT_PATH"` through an appropriate delivery
+   channel. Name the behavior: without it, a send from outside a Paseo agent
+   interrupts a busy coordinator, and Claude Code then tells it that its tool
+   call was rejected. `steer` joins the running turn instead.
 2. Otherwise use the harness's tracked background task, such as Claude Code Bash
    with `run_in_background`, whose completion re-invokes the agent. Register the
    waiter there; do not replace tracked execution with an untracked shell `&`.
